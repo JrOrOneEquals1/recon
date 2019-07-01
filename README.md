@@ -1,1 +1,1 @@
-# recon
+On lines 85-88, you must add your personal usernames/passwords, or else it will not work fo rthose sites.  You need to have Moazilla Firefox installed.  Your usernames and passwords are used only for logging in to the sites to get the information that you request, only when you request it.
