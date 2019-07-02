@@ -1,2 +1,2 @@
 On lines 85-88, you must add your personal usernames/passwords, or else it will not work fo rthose sites.  You need to have Moazilla Firefox installed.  Your usernames and passwords are used only for logging in to the sites that you request to get the information that you request, only when you request it.
-To install and use this tool, download the recon.zip file and extract to any folder, but keep in mind that it will not run if the geckodriver.exe is not in the folder with the recon.exe.
+To install and use this tool, download the recon.exe and the geckodriver.exe (you only need geckodriver once) and make sure that they are always in the same folder, or it will not work.
