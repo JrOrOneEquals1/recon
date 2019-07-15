@@ -8,7 +8,7 @@ You need to have Mozilla Firefox installed.  Your usernames and passwords are us
 To install and use this tool, download the recon.exe, recon.config, and the geckodriver.exe (you only need geckodriver and recon.config once) and make sure that they are always in the same folder, or it will not work.  If you make a choice you want to take back, type 'back' and it will undo 1 step.
 
 ## Entering credentials
-In recon.config, put the necessary credentials in where it tells you to, and put only the credentials in.  You can add extra lines for information about what goes where, but the first four lines should be only your credentials.  
+You must have a poppingboxes.com account and an actual hunter.io login/password.  There is an option on the site to sign in with google, but you need to have a password and email with it.  If you usually sign in with google, go to your account information and hit set password, then go to your email and folllow the instructions.  In recon.config, put the necessary credentials in where it tells you to, and put only the credentials in.
 
 ## Changing default settings
 To change the default settings, choose the settings you want, and when it asks if you want to save the settings, say yes, then name it 'default'.
