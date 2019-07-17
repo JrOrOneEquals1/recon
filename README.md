@@ -11,4 +11,4 @@ To install and use this tool, download recon.py, recon.config, and the geckodriv
 You must have a poppingboxes.com account and an actual hunter.io login/password.  There is an option on the site to sign in with google, but you need to have a password and email with it.  If you usually sign in with google, go to your account information and hit set password, then go to your email and folllow the instructions.  In recon.config, put the necessary credentials in where it tells you to, and put only the credentials in.
 
 ## Changing default settings
-To change the default settings, choose the settings you want, and when it asks if you want to save the settings, say yes, then name it 'default'.
+To change the default settings, open the recon.py file in a text editor, and near the beggining it has lines that start with 'parser.add_argument'.  Change the 'default=True' to 'default=False', and then near the end of the line it will say "action='store_false'", change it to "action='store_true'".
