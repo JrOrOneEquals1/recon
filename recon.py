@@ -1,36 +1,19 @@
 from selenium import webdriver
 import os, argparse, time
 
-
-y = open('set_default.txt', 'r')
-settings = y.read()
-settings = settings.split('\n')
-hunter_io = bool(settings[0])
-dns_use = bool(settings[1])
-whois_use = bool(settings[2])
-mx_use = bool(settings[3])
-he_use = bool(settings[4])
-leak_get = bool(settings[5])
-y.close()
-t = 0
-for item in settings:
-    if item == True:
-        settings[t] = False
-    elif item == False:
-        settings[t] = True
-    settings[t] = str(settings[t]).lower()
-    t += 1
-
-
-parser = argparse.ArgumentParser(description='This tool uses Python Selenium to parse through certain sites and retrieve IP addresses, emails, and leaks. It was developed by Cameron Roberts, age 16.')
+parser = argparse.ArgumentParser(
+    description='This tool uses Python Selenium to parse through certain sites and retrieve IP addresses, emails, and leaks. It was developed by Cameron Roberts, age 16.')
 parser.add_argument('-u', '--hunter', help='Turns off hunter.io.', default=True, required=False, action='store_false')
-parser.add_argument('-d', '--dns', help='Turns off dnsdumpster.com.', default=True, required=False, action='store_false')
-parser.add_argument('-w', '--whois', help='Turns off whois.arin.net.', default=True, required=False, action='store_false')
+parser.add_argument('-d', '--dns', help='Turns off dnsdumpster.com.', default=True, required=False,
+                    action='store_false')
+parser.add_argument('-w', '--whois', help='Turns off whois.arin.net.', default=True, required=False,
+                    action='store_false')
 parser.add_argument('-m', '--mx', help='Turns off mxtoolbox.com.', default=True, required=False, action='store_false')
 parser.add_argument('-e', '--he', help='Turns off bgp.he.net.', default=True, required=False, action='store_false')
-parser.add_argument('-l', '--leaks', help='Turns off poppingboxes.org.', default=True, required=False, action='store_false')
-parser.add_argument('-s', '--setting', help='Loads a saved setting file.  ("Set_" in the settings name is not necessary)', required=False)
-parser.add_argument('-n', '--new-setting', help='Creates a new setting file.  ("Set_" in settings name is not necessary)', required=False)
+parser.add_argument('-l', '--leaks', help='Turns off poppingboxes.org.', default=True, required=False,
+                    action='store_false')
+parser.add_argument('-s', '--setting', help='Loads a saved setting file.', required=False)
+parser.add_argument('-n', '--new-setting', help='Creates a new setting file.', required=False)
 parser.add_argument('-a', '--address', help="Customer's web domain.", required=True)
 parser.add_argument('-c', '--customer', help="All of the customer's names.", required=True, nargs='*')
 args = parser.parse_args()
@@ -47,7 +30,7 @@ customer_address = args.address
 customer = args.customer
 
 dns_list = []
-x = 0
+open_tabs = 0
 
 cred = open('recon.config', 'r')
 cred = cred.read()
@@ -56,7 +39,6 @@ hunter_un = cred[0]
 hunter_pw = cred[1]
 pbun = cred[2]
 pbpw = cred[3]
-
 
 if name1 != None:
     path = '.\\'
@@ -92,7 +74,6 @@ if name2 != None:
     y.write('\n' + str(leak_get))
     y.close()
 
-
 global out_string
 out_string = ''
 driver = webdriver.Firefox(executable_path='./geckodriver.exe')
@@ -106,12 +87,13 @@ if dns_use == True or dns_use == 'True':
             text = item.text
             dns_list.append(text)
         ttimes += 1
-    
+
     for item in dns_list:
         item1 = item.split('\n')
         out_string += item1[0] + '\n'
     driver.execute_script('''window.open("https://www.google.com","_blank");''')
-    x += 1
+    open_tabs += 1
+
 
 global times
 global times1
@@ -125,10 +107,23 @@ times2 = 1
 times3 = 1
 times4 = 1
 
-if whois_use == True or whois_use == 'True':
-    driver.switch_to.window(driver.window_handles[x])
-    
-    
+
+def whois_org():
+    global out_string
+    item_list = []
+    main_div = driver.find_element_by_id('maincontent')
+    for item1 in main_div.find_elements_by_tag_name('a'):
+        item_list.append(item1.text)
+    for item1 in item_list:
+        driver.get('https://whois.arin.net/rest/customer/' + item1)
+        tables = driver.find_elements_by_tag_name('table')
+        item = tables[1].find_element_by_tag_name('a').text
+        out_string += item + '\n'
+
+
+if whois_use or whois_use == 'True':
+    driver.switch_to.window(driver.window_handles[open_tabs])
+
     def run_arin(second):
         driver.get('https://whois.arin.net/ui/advanced.jsp')
         driver.find_element_by_id('q').send_keys(customer_address)
@@ -143,85 +138,29 @@ if whois_use == True or whois_use == 'True':
         times2 = 1
         times3 = 1
         times4 = 1
-        times_pic = 0
-        item_list = []
+        org = False
         for item in driver.find_elements_by_tag_name('input'):
             if times == 18 and not second:
                 item.click()
                 driver.find_element_by_id('submitQuery').click()
-                main_div = driver.find_element_by_id('maincontent')
-                for item1 in main_div.find_elements_by_tag_name('a'):
-                    item_list.append(item1.text)
-                for item1 in item_list:
-                    driver.get('https://whois.arin.net/rest/customer/' + item1)
-                    main_content = driver.find_element_by_id('maincontent')
-                    for item2 in main_content.find_elements_by_tag_name('td'):
-                        if times3 == 23:
-                            for item3 in item2.find_elements_by_tag_name('td'):
-                                if times4 == 2:
-                                    item1 = item3.text.split(' - ')
-                                    if len(item1) > 1:
-                                        item2_1 = item1[0]
-                                        item2_2 = item1[1]
-                                        item3 = item2_1.split('.')
-                                        item4 = item2_2.split('.')
-                                        min1 = int(item3[3])
-                                        max1 = int(item4[3])
-                                        default = item3[0] + '.' + item3[1] + '.' + item3[2] + '.'
-                                        while min1 <= max1:
-                                            out_string += default + str(min1) + '\n'
-                                            min1 += 1
-                                    else:
-                                        out_string += item + '\n'
-                                times4 += 1
-                        times3 += 1
-                    times_pic += 1
+                org = True
             elif times == 21 and second:
                 item.click()
                 driver.find_element_by_id('submitQuery').click()
-                main_div = driver.find_element_by_id('maincontent')
-                for item1 in main_div.find_elements_by_tag_name('a'):
-                    item_list.append(item1.text)
-                for item1 in item_list:
-                    times1 = 1
-                    times2 = 1
-                    driver.get('https://whois.arin.net/rest/customer/' + item1)
-                    main_content = driver.find_element_by_id('maincontent')
-                    for item2 in main_content.find_elements_by_tag_name('td'):
-                        if times1 == 23:
-                            for item3 in item2.find_elements_by_tag_name('td'):
-                                if times2 == 2:
-                                    item1 = item3.text.split(' - ')
-                                    if len(item1) > 1:
-                                        item2_1 = item1[0]
-                                        item2_2 = item1[1]
-                                        item3 = item2_1.split('.')
-                                        item4 = item2_2.split('.')
-                                        min1 = int(item3[3])
-                                        max1 = int(item4[3])
-                                        default = item3[0] + '.' + item3[1] + '.' + item3[2] + '.'
-                                        while min1 <= max1:
-                                            out_string += default + str(min1) + '\n'
-                                            min1 += 1
-                                    else:
-                                        out_string += item + '\n'
-                                times2 += 1
-                        times1 += 1
-                    times_pic += 1
+                whois_org()
                 break
-            elif times == 21:
-                run_arin(True)
-                break
+            if org:
+                whois_org()
             times += 1
-    
-    
-    run_arin(False)
-    driver.execute_script('''window.open("https://www.google.com","_blank");''')
-    x += 1
 
+
+    run_arin(False)
+    run_arin(True)
+    driver.execute_script('''window.open("https://www.google.com","_blank");''')
+    open_tabs += 1
 
 if mx_use == True or mx_use == 'True':
-    driver.switch_to.window(driver.window_handles[x])
+    driver.switch_to.window(driver.window_handles[open_tabs])
     driver.get('https://mxtoolbox.com/')
     driver.find_element_by_id('ctl00_ContentPlaceHolder1_ucToolhandler_txtToolInput').send_keys(customer_address)
     driver.find_element_by_id('ctl00_ContentPlaceHolder1_ucToolhandler_btnAction').click()
@@ -231,13 +170,13 @@ if mx_use == True or mx_use == 'True':
         out_string += item.find_element_by_tag_name('a').text + '\n'
         times += 1
     driver.execute_script('''window.open("https://www.google.com","_blank");''')
-    x += 1
+    open_tabs += 1
 
 if he_use == True or he_use == 'True':
-    driver.switch_to.window(driver.window_handles[x])
+    driver.switch_to.window(driver.window_handles[open_tabs])
     driver.get('https://bgp.he.net/ip')
     driver.find_element_by_id('search_search').send_keys(customer_address)
-    
+
     times = 0
     times1 = 0
     item_list = []
@@ -254,15 +193,16 @@ if he_use == True or he_use == 'True':
             for item1 in item_list:
                 driver.get('https://bgp.he.net/ip/' + str(item1))
                 try:
-                    out_string += 'Net Block: ' + driver.find_element_by_class_name('nowrap').find_element_by_tag_name('a').text + '\n'
+                    out_string += 'Net Block: ' + driver.find_element_by_class_name('nowrap').find_element_by_tag_name(
+                        'a').text + '\n'
                 except:
                     pass
         times += 1
     driver.execute_script('''window.open("https://www.google.com","_blank");''')
-    x += 1
+    open_tabs += 1
 
 if hunter_io == True or hunter_io == 'True':
-    driver.switch_to.window(driver.window_handles[x])
+    driver.switch_to.window(driver.window_handles[open_tabs])
     driver.get('https://hunter.io/search')
     driver.find_element_by_id('email-field').send_keys(hunter_un)
     driver.find_element_by_id('password-field').send_keys(hunter_pw)
@@ -283,15 +223,12 @@ if hunter_io == True or hunter_io == 'True':
             break
         time.sleep(1)
     driver.execute_script('''window.open("https://www.google.com","_blank");''')
-    x += 1
+    open_tabs += 1
 
 email = open('emails.txt', 'w')
 for item in driver.find_elements_by_class_name('email'):
     email.write(item.text + '\n')
 email.close()
-
-
-
 
 times = 1
 times1 = 1
@@ -304,7 +241,7 @@ tt = 0
 
 while tt < len(customer):
     if whois_use == True or whois_use == 'True':
-        driver.switch_to.window(driver.window_handles[x])
+        driver.switch_to.window(driver.window_handles[open_tabs])
 
 
         def run_arin(second):
@@ -327,80 +264,27 @@ while tt < len(customer):
                 if times == 18 and not second:
                     item.click()
                     driver.find_element_by_id('submitQuery').click()
-                    main_div = driver.find_element_by_id('maincontent')
-                    for item1 in main_div.find_elements_by_tag_name('a'):
-                        item_list.append(item1.text)
-                    for item1 in item_list:
-                        driver.get('https://whois.arin.net/rest/customer/' + item1)
-                        main_content = driver.find_element_by_id('maincontent')
-                        for item2 in main_content.find_elements_by_tag_name('td'):
-                            if times3 == 23:
-                                for item3 in item2.find_elements_by_tag_name('td'):
-                                    if times4 == 2:
-                                        item1 = item3.text.split(' - ')
-                                        if len(item1) > 1:
-                                            item2_1 = item1[0]
-                                            item2_2 = item1[1]
-                                            item3 = item2_1.split('.')
-                                            item4 = item2_2.split('.')
-                                            min1 = int(item3[3])
-                                            max1 = int(item4[3])
-                                            default = item3[0] + '.' + item3[1] + '.' + item3[2] + '.'
-                                            while min1 <= max1:
-                                                out_string += default + str(min1) + '\n'
-                                                min1 += 1
-                                        else:
-                                            out_string += item + '\n'
-                                    times4 += 1
-                            times3 += 1
-                        times_pic += 1
+                    whois_org()
                 elif times == 21 and second:
                     item.click()
                     driver.find_element_by_id('submitQuery').click()
-                    main_div = driver.find_element_by_id('maincontent')
-                    for item1 in main_div.find_elements_by_tag_name('a'):
-                        item_list.append(item1.text)
-                    for item1 in item_list:
-                        times1 = 1
-                        times2 = 1
-                        driver.get('https://whois.arin.net/rest/customer/' + item1)
-                        main_content = driver.find_element_by_id('maincontent')
-                        for item2 in main_content.find_elements_by_tag_name('td'):
-                            if times1 == 23:
-                                for item3 in item2.find_elements_by_tag_name('td'):
-                                    if times2 == 2:
-                                        item1 = item3.text.split(' - ')
-                                        if len(item1) > 1:
-                                            item2_1 = item1[0]
-                                            item2_2 = item1[1]
-                                            item3 = item2_1.split('.')
-                                            item4 = item2_2.split('.')
-                                            min1 = int(item3[3])
-                                            max1 = int(item4[3])
-                                            default = item3[0] + '.' + item3[1] + '.' + item3[2] + '.'
-                                            while min1 <= max1:
-                                                out_string += default + str(min1) + '\n'
-                                                min1 += 1
-                                        else:
-                                            out_string += item + '\n'
-                                    times2 += 1
-                            times1 += 1
-                        times_pic += 1
+                    whois_org()
                     break
                 elif times == 21:
                     run_arin(True)
                     break
                 times += 1
+
+
         run_arin(False)
     tt += 1
+    driver.execute_script('''window.open("https://www.google.com","_blank");''')
+    open_tabs += 1
 
 tt = 0
 while tt < len(customer):
     if he_use == True or he_use == 'True':
-        driver.execute_script('''window.open("https://www.google.com","_blank");''')
-        x = int(x)
-        driver.switch_to.window(driver.window_handles[x])
-        x += 1
+        driver.switch_to.window(driver.window_handles[open_tabs])
         driver.get('https://bgp.he.net/ip')
         driver.find_element_by_id('search_search').send_keys(customer[tt])
 
@@ -423,12 +307,11 @@ while tt < len(customer):
                         'a').text + '\n'
             times += 1
     tt += 1
+    driver.execute_script('''window.open("https://www.google.com","_blank");''')
+    open_tabs += 1
 
 if leak_get == True or leak_get == 'True':
-    driver.execute_script('''window.open("https://www.google.com","_blank");''')
-    x = int(x)
-    driver.switch_to.window(driver.window_handles[x])
-    x += 1
+    driver.switch_to.window(driver.window_handles[open_tabs])
     driver.get('https://poppingboxes.org/')
     driver.find_element_by_class_name('nav-link').click()
     time.sleep(2)
