@@ -2,7 +2,7 @@ from selenium import webdriver
 import os, argparse, time
 
 parser = argparse.ArgumentParser(
-    description='This tool uses Python Selenium to parse through certain sites and retrieve IP addresses, emails, and leaks. It was developed by Cameron Roberts, age 16.')
+    description='This tool uses Python Selenium to parse through certain sites and retrieve IP addresses, emails, and leaks.')
 parser.add_argument('-u', '--hunter', help='Turns off hunter.io.', default=True, required=False, action='store_false')
 parser.add_argument('-d', '--dns', help='Turns off dnsdumpster.com.', default=True, required=False,
                     action='store_false')
