@@ -1,21 +1,17 @@
-from selenium import webdriver
 import os, argparse, time
+from importlib import import_module
 
-parser = argparse.ArgumentParser(
-    description='This tool uses Python Selenium to parse through certain sites and retrieve IP addresses, emails, and leaks.')
-parser.add_argument('-u', '--hunter', help='Turns off hunter.io.', default=True, required=False, action='store_false')
-parser.add_argument('-d', '--dns', help='Turns off dnsdumpster.com.', default=True, required=False,
-                    action='store_false')
-parser.add_argument('-w', '--whois', help='Turns off whois.arin.net.', default=True, required=False,
-                    action='store_false')
-parser.add_argument('-m', '--mx', help='Turns off mxtoolbox.com.', default=True, required=False, action='store_false')
-parser.add_argument('-e', '--he', help='Turns off bgp.he.net.', default=True, required=False, action='store_false')
-parser.add_argument('-l', '--leaks', help='Turns off poppingboxes.org.', default=True, required=False,
-                    action='store_false')
-parser.add_argument('-s', '--setting', help='Loads a saved setting file.', required=False)
-parser.add_argument('-n', '--new-setting', help='Creates a new setting file.', required=False)
+parser = argparse.ArgumentParser(description='This tool uses Python Selenium to parse through certain sites and retrieve IP addresses, emails, and leaks.')
 parser.add_argument('-a', '--address', help="Customer's web domain.", required=True)
 parser.add_argument('-c', '--customer', help="All of the customer's names.", required=True, nargs='*')
+parser.add_argument('-u', '--hunter', help='Turns off hunter.io.', default=True, required=False, action='store_false')
+parser.add_argument('-d', '--dns', help='Turns off dnsdumpster.com.', default=True, required=False,action='store_false')
+parser.add_argument('-w', '--whois', help='Turns off whois.arin.net.', default=True, required=False,action='store_false')
+parser.add_argument('-m', '--mx', help='Turns off mxtoolbox.com.', default=True, required=False, action='store_false')
+parser.add_argument('-e', '--he', help='Turns off bgp.he.net.', default=True, required=False, action='store_false')
+parser.add_argument('-l', '--leaks', help='Turns off poppingboxes.org.', default=True, required=False, action='store_false')
+parser.add_argument('-s', '--setting', help='Loads a saved setting file.', required=False)
+parser.add_argument('-n', '--new-setting', help='Creates a new setting file.', required=False)
 args = parser.parse_args()
 
 name1 = args.setting
@@ -28,17 +24,20 @@ he_use = args.he
 leak_get = args.leaks
 customer_address = args.address
 customer = args.customer
+print(customer)
 
 dns_list = []
 open_tabs = 0
 
-cred = open('recon.config', 'r')
-cred = cred.read()
-cred = cred.split('\n')
+cred = open('recon.config', 'r').read().split('\n')
 hunter_un = cred[0]
 hunter_pw = cred[1]
 pbun = cred[2]
 pbpw = cred[3]
+gecko_location = cred[4]
+sel_location = cred[5]
+webdriver = import_module(sel_location + '.webdriver', package='.webdriver')
+
 
 if name1 != None:
     path = '.\\'
@@ -76,7 +75,7 @@ if name2 != None:
 
 global out_string
 out_string = ''
-driver = webdriver.Firefox(executable_path='./geckodriver.exe')
+driver = webdriver.Firefox(executable_path=gecko_location)
 if dns_use == True or dns_use == 'True':
     driver.get('https://dnsdumpster.com')
     driver.find_element_by_id('regularInput').send_keys(customer_address)
