@@ -1,4 +1,5 @@
 import os, argparse, time
+from selenium import webdriver
 from importlib import import_module
 
 parser = argparse.ArgumentParser(description='This tool uses Python Selenium to parse through certain sites and retrieve IP addresses, emails, and leaks.')
@@ -24,19 +25,27 @@ he_use = args.he
 leak_get = args.leaks
 customer_address = args.address
 customer = args.customer
-print(customer)
 
 dns_list = []
 open_tabs = 0
 
-cred = open('recon.config', 'r').read().split('\n')
-hunter_un = cred[0]
-hunter_pw = cred[1]
-pbun = cred[2]
-pbpw = cred[3]
-gecko_location = cred[4]
-sel_location = cred[5]
-webdriver = import_module(sel_location + '.webdriver', package='.webdriver')
+try:
+    cred = open('recon.config', 'r').read().split('\n')
+    hunter_un = cred[0].split(' = ')[1]
+    hunter_pw = cred[1].split(' = ')[1]
+    pbun = cred[2].split(' = ')[1]
+    pbpw = cred[3].split(' = ')[1]
+    gecko_location = cred[4].split(' = ')[1]
+except:
+    cred_write = open('recon.config', 'w')
+    print('Your recon.config folder is empty.  Please answer the following questions to fill it.')
+    hunter_un = input('What is your hunter.io email? ')
+    hunter_pw = input('What is your hunter.io password? ')
+    pbun = input('What is your poppingboxes.org username? ')
+    pbpw = input('What is your poppingboxes.org password? ')
+    gecko_location = input('What is the location of geckodriver.exe? ')
+    cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw + '\nPoppingBoxes username = ' + pbun + '\nPoppingBoxes password = ' + pbpw + '\nGeckodriver Location = ' + gecko_location)
+    cred_write.close()
 
 
 if name1 != None:
@@ -116,8 +125,11 @@ def whois_org():
     for item1 in item_list:
         driver.get('https://whois.arin.net/rest/customer/' + item1)
         tables = driver.find_elements_by_tag_name('table')
-        item = tables[1].find_element_by_tag_name('a').text
-        out_string += item + '\n'
+        try:
+            item = tables[1].find_element_by_tag_name('a').text
+            out_string += item + '\n'
+        except:
+            pass
 
 
 if whois_use or whois_use == 'True':
