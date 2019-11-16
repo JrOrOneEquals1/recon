@@ -5,6 +5,8 @@ from importlib import import_module
 parser = argparse.ArgumentParser(description='This tool uses Python Selenium to parse through certain sites and retrieve IP addresses, and emails.')
 parser.add_argument('-a', '--address', help="Customer's web domain.", required=True)
 parser.add_argument('-c', '--customer', help="All of the customer's names.", required=True, nargs='*')
+parser.add_argument('-eF', '--emailFile', help="File name of where emails are saved.", required=False)
+parser.add_argument('-iF', '--ipFile', help="File name of where IPs are saved.", required=False)
 parser.add_argument('-u', '--hunter', help='Turns off hunter.io.', default=True, required=False, action='store_false')
 parser.add_argument('-d', '--dns', help='Turns off dnsdumpster.com.', default=True, required=False, action='store_false')
 parser.add_argument('-w', '--whois', help='Turns off whois.arin.net.', default=True, required=False, action='store_false')
@@ -17,6 +19,8 @@ args = parser.parse_args()
 name1 = args.setting
 name2 = args.new_setting
 dns_use = args.dns
+eF = args.emailFile
+iF = args.ipFile
 hunter_io = args.hunter
 whois_use = args.whois
 mx_use = args.mx
@@ -27,14 +31,29 @@ customer = args.customer
 dns_list = []
 open_tabs = 0
 
+if iF != None:
+    if iF[-4:-1] == '.txt':
+        ip = open(iF, 'w')
+    elif iF[-4:-1] != '.txt':
+        ip = open(iF + '.txt', 'w')
+else:
+    ip = open('ips.txt', 'w')
+
+if eF != None:
+    if eF[-4:-1] == '.txt':
+        emails = open(eF, 'w')
+    elif eF[-4:-1] != '.txt':
+        emails = open(eF + '.txt', 'w')
+else:
+    emails = open('emails.txt', 'w')
+
 try:
     cred = open('recon.config', 'r').read().split('\n')
     hunter_un = cred[0].split(' = ')[1]
     hunter_pw = cred[1].split(' = ')[1]
-    pbun = cred[2].split(' = ')[1]
-    pbpw = cred[3].split(' = ')[1]
-    gecko_location = cred[4].split(' = ')[1]
-except:
+    gecko_location = cred[2].split(' = ')[1]
+except IndexError:
+    cred.close()
     cred_write = open('recon.config', 'w')
     print('Your recon.config folder is empty.  Please answer the following questions to fill it.')
     hunter_un = input('What is your hunter.io email? ')
@@ -76,8 +95,6 @@ if name2 != None:
     y.write('\n' + str(he_use))
     y.close()
 
-global out_string
-out_string = ''
 driver = webdriver.Firefox(executable_path=gecko_location)
 if dns_use == True or dns_use == 'True':
     driver.get('https://dnsdumpster.com')
@@ -92,7 +109,7 @@ if dns_use == True or dns_use == 'True':
 
     for item in dns_list:
         item1 = item.split('\n')
-        out_string += item1[0] + '\n'
+        ip.write(item1[0] + '\n')
     driver.execute_script('''window.open("https://www.google.com","_blank");''')
     open_tabs += 1
 
@@ -111,7 +128,6 @@ times4 = 1
 
 
 def whois_org():
-    global out_string
     item_list = []
     main_div = driver.find_element_by_id('maincontent')
     for item1 in main_div.find_elements_by_tag_name('a'):
@@ -121,7 +137,7 @@ def whois_org():
         tables = driver.find_elements_by_tag_name('table')
         try:
             item = tables[1].find_element_by_tag_name('a').text
-            out_string += item + '\n'
+            ip.write(item + '\n')
         except:
             pass
 
@@ -137,7 +153,6 @@ if whois_use or whois_use == 'True':
         global times2
         global times3
         global times4
-        global out_string
         times = 1
         times1 = 1
         times2 = 1
@@ -172,7 +187,7 @@ if mx_use == True or mx_use == 'True':
     time.sleep(5)
     times = 0
     for item in driver.find_elements_by_class_name('table-column-IP_Address'):
-        out_string += item.find_element_by_tag_name('a').text + '\n'
+        ip.write(item.find_element_by_tag_name('a').text + '\n')
         times += 1
     driver.execute_script('''window.open("https://www.google.com","_blank");''')
     open_tabs += 1
@@ -198,8 +213,7 @@ if he_use == True or he_use == 'True':
             for item1 in item_list:
                 driver.get('https://bgp.he.net/ip/' + str(item1))
                 try:
-                    out_string += 'Net Block: ' + driver.find_element_by_class_name('nowrap').find_element_by_tag_name(
-                        'a').text + '\n'
+                    ip.write('Net Block: ' + driver.find_element_by_class_name('nowrap').find_element_by_tag_name('a').text + '\n')
                 except:
                     pass
         times += 1
@@ -229,11 +243,9 @@ if hunter_io == True or hunter_io == 'True':
         time.sleep(1)
     driver.execute_script('''window.open("https://www.google.com","_blank");''')
     open_tabs += 1
-
-email = open('emails.txt', 'w')
 for item in driver.find_elements_by_class_name('email'):
-    email.write(item.text + '\n')
-email.close()
+    emails.write(item.text + '\n')
+emails.close()
 
 times = 1
 times1 = 1
@@ -257,7 +269,6 @@ while tt < len(customer):
             global times2
             global times3
             global times4
-            global out_string
             times = 1
             times1 = 1
             times2 = 1
@@ -308,15 +319,10 @@ while tt < len(customer):
                     times1 += 1
                 for item1 in item_list:
                     driver.get('https://bgp.he.net/ip/' + str(item1))
-                    out_string += 'Net Block: ' + driver.find_element_by_class_name('nowrap').find_element_by_tag_name(
-                        'a').text + '\n'
+                    ip.write('Net Block: ' + driver.find_element_by_class_name('nowrap').find_element_by_tag_name('a').text + '\n')
             times += 1
     tt += 1
     driver.execute_script('''window.open("https://www.google.com","_blank");''')
     open_tabs += 1
 
-ip = open('ips.txt', 'w')
-out_list = out_string.split('\n')
-for item in out_list:
-    ip.write(item + '\n')
 ip.close()
