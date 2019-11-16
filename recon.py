@@ -2,15 +2,14 @@ import os, argparse, time
 from selenium import webdriver
 from importlib import import_module
 
-parser = argparse.ArgumentParser(description='This tool uses Python Selenium to parse through certain sites and retrieve IP addresses, emails, and leaks.')
+parser = argparse.ArgumentParser(description='This tool uses Python Selenium to parse through certain sites and retrieve IP addresses, and emails.')
 parser.add_argument('-a', '--address', help="Customer's web domain.", required=True)
 parser.add_argument('-c', '--customer', help="All of the customer's names.", required=True, nargs='*')
 parser.add_argument('-u', '--hunter', help='Turns off hunter.io.', default=True, required=False, action='store_false')
-parser.add_argument('-d', '--dns', help='Turns off dnsdumpster.com.', default=True, required=False,action='store_false')
-parser.add_argument('-w', '--whois', help='Turns off whois.arin.net.', default=True, required=False,action='store_false')
+parser.add_argument('-d', '--dns', help='Turns off dnsdumpster.com.', default=True, required=False, action='store_false')
+parser.add_argument('-w', '--whois', help='Turns off whois.arin.net.', default=True, required=False, action='store_false')
 parser.add_argument('-m', '--mx', help='Turns off mxtoolbox.com.', default=True, required=False, action='store_false')
 parser.add_argument('-e', '--he', help='Turns off bgp.he.net.', default=True, required=False, action='store_false')
-parser.add_argument('-l', '--leaks', help='Turns off poppingboxes.org.', default=True, required=False, action='store_false')
 parser.add_argument('-s', '--setting', help='Loads a saved setting file.', required=False)
 parser.add_argument('-n', '--new-setting', help='Creates a new setting file.', required=False)
 args = parser.parse_args()
@@ -22,7 +21,6 @@ hunter_io = args.hunter
 whois_use = args.whois
 mx_use = args.mx
 he_use = args.he
-leak_get = args.leaks
 customer_address = args.address
 customer = args.customer
 
@@ -41,10 +39,8 @@ except:
     print('Your recon.config folder is empty.  Please answer the following questions to fill it.')
     hunter_un = input('What is your hunter.io email? ')
     hunter_pw = input('What is your hunter.io password? ')
-    pbun = input('What is your poppingboxes.org username? ')
-    pbpw = input('What is your poppingboxes.org password? ')
     gecko_location = input('What is the location of geckodriver.exe? ')
-    cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw + '\nPoppingBoxes username = ' + pbun + '\nPoppingBoxes password = ' + pbpw + '\nGeckodriver Location = ' + gecko_location)
+    cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw + '\nGeckodriver Location = ' + gecko_location)
     cred_write.close()
 
 
@@ -66,7 +62,6 @@ if name1 != None:
     whois_use = settings[2]
     mx_use = settings[3]
     he_use = settings[4]
-    leak_get = settings[5]
     y.close()
 
 if name2 != None:
@@ -79,7 +74,6 @@ if name2 != None:
     y.write('\n' + str(whois_use))
     y.write('\n' + str(mx_use))
     y.write('\n' + str(he_use))
-    y.write('\n' + str(leak_get))
     y.close()
 
 global out_string
@@ -320,21 +314,6 @@ while tt < len(customer):
     tt += 1
     driver.execute_script('''window.open("https://www.google.com","_blank");''')
     open_tabs += 1
-
-if leak_get == True or leak_get == 'True':
-    driver.switch_to.window(driver.window_handles[open_tabs])
-    driver.get('https://poppingboxes.org/')
-    driver.find_element_by_class_name('nav-link').click()
-    time.sleep(2)
-    driver.find_element_by_id('id_login').send_keys(pbun)
-    driver.find_element_by_id('id_password').send_keys(pbpw)
-    driver.find_element_by_class_name('primaryAction').click()
-    time.sleep(2)
-    driver.find_element_by_class_name('nav-link').click()
-    driver.find_element_by_id('domain').send_keys(customer_address)
-    driver.find_element_by_id('retrieve_leak').click()
-    time.sleep(2)
-    driver.find_element_by_class_name('buttons-csv').click()
 
 ip = open('ips.txt', 'w')
 out_list = out_string.split('\n')
