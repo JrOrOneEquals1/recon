@@ -1,3 +1,5 @@
+#!usr/bin/ python
+
 import os, argparse, time
 from selenium import webdriver
 from importlib import import_module
@@ -49,17 +51,24 @@ else:
 
 try:
     cred = open('recon.config', 'r').read().split('\n')
-    hunter_un = cred[0].split(' = ')[1]
-    hunter_pw = cred[1].split(' = ')[1]
-    gecko_location = cred[2].split(' = ')[1]
-except IndexError:
+    for item in cred:
+        item.split(' = ')
+        if item[0] == ('Geckodriver Location'):
+            gecko_location = item[1]
+        elif item[0] == ('Hunter email'):
+            hunter_un = item[1]
+        elif item[0] == ('Hunter password'):
+            hunter_pw = item[1]
     cred.close()
+except:
     cred_write = open('recon.config', 'w')
     print('Your recon.config folder is empty.  Please answer the following questions to fill it.')
-    hunter_un = input('What is your hunter.io email? ')
-    hunter_pw = input('What is your hunter.io password? ')
+    if hunter_io:
+        hunter_un = input('What is your hunter.io email? ')
+        hunter_pw = input('What is your hunter.io password? ')
+        cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw)
     gecko_location = input('What is the location of geckodriver.exe? ')
-    cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw + '\nGeckodriver Location = ' + gecko_location)
+    cred_write.write('Geckodriver Location = ' + gecko_location)
     cred_write.close()
 
 
