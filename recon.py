@@ -105,7 +105,7 @@ if name2 != None:
     y.close()
 
 driver = webdriver.Firefox(executable_path=gecko_location)
-if dns_use == True or dns_use == 'True':
+if dns_use == True:
     driver.get('https://dnsdumpster.com')
     driver.find_element_by_id('regularInput').send_keys(customer_address)
     driver.find_element_by_class_name('btn').click()
