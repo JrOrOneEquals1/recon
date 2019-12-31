@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, argparse, time
+import os, argparse, time, sys
 from selenium import webdriver
 from importlib import import_module
 
@@ -33,6 +33,11 @@ customer = args.customer
 dns_list = []
 open_tabs = 0
 
+try:
+    input = raw_input
+except NameError:
+    pass
+
 if iF != None:
     if iF[-4:-1] == '.txt':
         ip = open(iF, 'w')
@@ -49,28 +54,37 @@ if eF != None:
 else:
     emails = open('emails.txt', 'w')
 
+
+def askForCreds():
+    cred_write = open('recon.config', 'w+')
+    print('Your recon.config folder is empty.  Please answer the following questions to fill it.')
+    if hunter_io:
+        hunter_un = input('What is your hunter.io email? ')
+        hunter_pw = input('What is your hunter.io password? ')
+        cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw + '\n')
+    gecko_location = input('What is the location of geckodriver.exe? ')
+    cred_write.write('Geckodriver Location = ' + gecko_location)
+    cred_write.close()
+
+gecko_location = ''
+hunter_un = ''
+hunter_pw = ''
+
 try:
     cred = open('recon.config', 'r').read().split('\n')
     for item in cred:
-        item.split(' = ')
+        item = item.split(' = ')
         if item[0] == ('Geckodriver Location'):
             gecko_location = item[1]
         elif item[0] == ('Hunter email'):
             hunter_un = item[1]
         elif item[0] == ('Hunter password'):
             hunter_pw = item[1]
-    cred.close()
 except:
-    cred_write = open('recon.config', 'w')
-    print('Your recon.config folder is empty.  Please answer the following questions to fill it.')
-    if hunter_io:
-        hunter_un = input('What is your hunter.io email? ')
-        hunter_pw = input('What is your hunter.io password? ')
-        cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw)
-    gecko_location = input('What is the location of geckodriver.exe? ')
-    cred_write.write('Geckodriver Location = ' + gecko_location)
-    cred_write.close()
+    askForCreds()
 
+if gecko_location == '' or hunter_un == '' or hunter_pw == '':
+    askForCreds()
 
 if name1 != None:
     path = '.\\'
@@ -105,6 +119,8 @@ if name2 != None:
     y.close()
 
 driver = webdriver.Firefox(executable_path=gecko_location)
+
+
 if dns_use == True:
     driver.get('https://dnsdumpster.com')
     driver.find_element_by_id('regularInput').send_keys(customer_address)
