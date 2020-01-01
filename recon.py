@@ -5,30 +5,30 @@ from selenium import webdriver
 from importlib import import_module
 
 parser = argparse.ArgumentParser(description='This tool uses Python Selenium to parse through certain sites and retrieve IP addresses, and emails.')
-parser.add_argument('-a', '--address', help="Customer's web domain.", required=True)
-parser.add_argument('-c', '--customer', help="All of the customer's names.", required=True, nargs='*')
+parser.add_argument('-d', '--domain', help="Customer's web domain.", required=True)
+parser.add_argument('-n', '--name', help="All of the customer's names.", required=True, nargs='*')
 parser.add_argument('-eF', '--emailFile', help="File name of where emails are saved.", required=False)
 parser.add_argument('-iF', '--ipFile', help="File name of where IPs are saved.", required=False)
-parser.add_argument('-u', '--hunter', help='Turns off hunter.io.', default=True, required=False, action='store_false')
-parser.add_argument('-d', '--dns', help='Turns off dnsdumpster.com.', default=True, required=False, action='store_false')
-parser.add_argument('-w', '--whois', help='Turns off whois.arin.net.', default=True, required=False, action='store_false')
-parser.add_argument('-m', '--mx', help='Turns off mxtoolbox.com.', default=True, required=False, action='store_false')
-parser.add_argument('-e', '--he', help='Turns off bgp.he.net.', default=True, required=False, action='store_false')
+parser.add_argument('-hunter', '--hunterio', help='Turns off hunter.io.', default=True, required=False, action='store_false')
+parser.add_argument('-dns', '--dnsdumpster', help='Turns off dnsdumpster.com.', default=True, required=False, action='store_false')
+parser.add_argument('-whois', '--whois', help='Turns off whois.arin.net.', default=True, required=False, action='store_false')
+parser.add_argument('-mx', '--mxtoolbox', help='Turns off mxtoolbox.com.', default=True, required=False, action='store_false')
+parser.add_argument('-he', '--hurricaneelectric', help='Turns off bgp.he.net.', default=True, required=False, action='store_false')
 parser.add_argument('-s', '--setting', help='Loads a saved setting file.', required=False)
 parser.add_argument('-n', '--new-setting', help='Creates a new setting file.', required=False)
 args = parser.parse_args()
 
 name1 = args.setting
 name2 = args.new_setting
-dns_use = args.dns
+dns_use = args.dnsdumpster
 eF = args.emailFile
 iF = args.ipFile
-hunter_io = args.hunter
+hunter_io = args.hunterio
 whois_use = args.whois
-mx_use = args.mx
-he_use = args.he
-customer_address = args.address
-customer = args.customer
+mx_use = args.mxtoolbox
+he_use = args.hurricaneelectric
+customer_address = args.domain
+customer = args.name
 
 dns_list = []
 open_tabs = 0
