@@ -54,21 +54,11 @@ if eF != None:
 else:
     emails = open('emails.txt', 'w')
 
-
-def askForCreds():
-    cred_write = open('recon.config', 'w+')
-    print('Your recon.config folder is empty.  Please answer the following questions to fill it.')
-    if hunter_io:
-        hunter_un = input('What is your hunter.io email? ')
-        hunter_pw = input('What is your hunter.io password? ')
-        cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw + '\n')
-    gecko_location = input('What is the location of geckodriver.exe? ')
-    cred_write.write('Geckodriver Location = ' + gecko_location)
-    cred_write.close()
-
 gecko_location = ''
 hunter_un = ''
 hunter_pw = ''
+
+cred_write = open('recon.config', 'a')
 
 try:
     cred = open('recon.config', 'r').read().split('\n')
@@ -81,10 +71,28 @@ try:
         elif item[0] == ('Hunter password'):
             hunter_pw = item[1]
 except:
-    askForCreds()
+    print('Your recon.config folder is empty.  Please answer the following questions to fill it.')
+    if hunter_io:
+        hunter_un = input('What is your hunter.io email? ')
+        hunter_pw = input('What is your hunter.io password? ')
+        cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw + '\n')
+    gecko_location = input('What is the location of geckodriver.exe? ')
+    cred_write.write('Geckodriver Location = ' + gecko_location)
+    cred_write.close()
 
-if gecko_location == '' or hunter_un == '' or hunter_pw == '':
-    askForCreds()
+if hunter_un == '':
+    hunter_un = input('What is your hunter.io email? ')
+    cred_write.write('\nHunter email = ' + hunter_un)
+if hunter_pw == '':
+    hunter_pw = input('What is your hunter.io password? ')
+    cred_write.write('\nHunter password = ' + hunter_pw)
+if gecko_location == '':
+    gecko_location = input('What is the location of geckodriver.exe? ')
+    if gecko_location == '':
+        gecko_location = './geckodriver.exe'
+    cred_write.write('\nGeckodriver Location = ' + gecko_location)
+
+cred_write.close()
 
 if name1 != None:
     path = '.\\'
@@ -119,7 +127,6 @@ if name2 != None:
     y.close()
 
 driver = webdriver.Firefox(executable_path=gecko_location)
-
 
 if dns_use == True:
     driver.get('https://dnsdumpster.com')
