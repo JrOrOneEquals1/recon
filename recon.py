@@ -15,7 +15,7 @@ parser.add_argument('-whois', '--whois', help='Turns off whois.arin.net.', defau
 parser.add_argument('-mx', '--mxtoolbox', help='Turns off mxtoolbox.com.', default=True, required=False, action='store_false')
 parser.add_argument('-he', '--hurricaneelectric', help='Turns off bgp.he.net.', default=True, required=False, action='store_false')
 parser.add_argument('-s', '--setting', help='Loads a saved setting file.', required=False)
-parser.add_argument('-n', '--new-setting', help='Creates a new setting file.', required=False)
+parser.add_argument('-nS', '--new-setting', help='Creates a new setting file.', required=False)
 args = parser.parse_args()
 
 name1 = args.setting
