@@ -48,11 +48,11 @@ else:
 
 if eF != None:
     if eF[-4:-1] == '.txt':
-        emails = open(eF, 'w')
+        emails = open(eF, 'w+')
     elif eF[-4:-1] != '.txt':
-        emails = open(eF + '.txt', 'w')
+        emails = open(eF + '.txt', 'w+')
 else:
-    emails = open('emails.txt', 'w')
+    emails = open('emails.txt', 'w+')
 
 gecko_location = ''
 hunter_un = ''
@@ -94,248 +94,172 @@ if gecko_location == '':
 
 cred_write.close()
 
+br = False
+
 if name1 != None:
     path = '.\\'
     files = []
     for r, d, f in os.walk(path):
         for file in f:
-            if '.txt' in file and 'set' in file:
+            if '.txt' in file and 'setting' in file:
                 files.append(os.path.join(r, file))
     try:
         y = open(name1 + '.txt', 'r')
     except:
-        y = open('set_' + name1 + '.txt', 'r')
+        try:
+            y = open('setting_' + name1 + '.txt', 'r')
+        except:
+            print('There is no setting file called: ' + name1)
     settings = y.read()
     settings = settings.split('\n')
-    hunter_io = settings[0]
-    dns_use = settings[1]
-    whois_use = settings[2]
-    mx_use = settings[3]
-    he_use = settings[4]
+    hunter_io = False
+    dns_use = False
+    whois_use = False
+    mx_use = False
+    he_use = False
+    if settings[0] == 'True':
+        hunter_io = True
+    if settings[1] == 'True':
+        dns_use = True
+    if settings[2] == 'True':
+        whois_use = True
+    if settings[3] == 'True':
+        mx_use = True
+    if settings[4] == 'True':
+        he_use = True
     y.close()
 
 if name2 != None:
-    if name2[:3] == 'set_':
-        y = open(name2 + '.txt', 'w')
+    path = '.\\'
+    cont = 'y'
+    for r, d, f in os.walk(path):
+        for file in f:
+            if 'setting_' + name2 in file:
+                cont = input('There is already a setting named "' + name2 + '".  Do you want to overwrite it? [y/n] ')
+    if cont == 'y':
+        if name2[:3] == 'setting_':
+            y = open(name2 + '.txt', 'w')
+        else:
+            y = open('setting_' + name2 + '.txt', 'w')
+        y.write(str(hunter_io))
+        y.write('\n' + str(dns_use))
+        y.write('\n' + str(whois_use))
+        y.write('\n' + str(mx_use))
+        y.write('\n' + str(he_use))
+        y.close()
     else:
-        y = open('set_' + name2 + '.txt', 'w')
-    y.write(str(hunter_io))
-    y.write('\n' + str(dns_use))
-    y.write('\n' + str(whois_use))
-    y.write('\n' + str(mx_use))
-    y.write('\n' + str(he_use))
-    y.close()
+        print("OK")
+        br = True
+if not br:
+    driver = webdriver.Firefox(executable_path=gecko_location)
 
-driver = webdriver.Firefox(executable_path=gecko_location)
+try:
+    if dns_use:
+        driver.get("https://dnsdumpster.com")
+        open_tabs += 1
+        time.sleep(2)
+        driver.find_element_by_id('regularInput').send_keys(customer_address)
+        driver.find_element_by_class_name('btn').click()
+        ttimes = 0
+        for item in driver.find_elements_by_class_name('col-md-3'):
+            if ttimes % 2 == 0:
+                text = item.text
+                dns_list.append(text)
+            ttimes += 1
 
-if dns_use == True:
-    driver.get('https://dnsdumpster.com')
-    driver.find_element_by_id('regularInput').send_keys(customer_address)
-    driver.find_element_by_class_name('btn').click()
-    ttimes = 0
-    for item in driver.find_elements_by_class_name('col-md-3'):
-        if ttimes % 2 == 0:
-            text = item.text
-            dns_list.append(text)
-        ttimes += 1
-
-    for item in dns_list:
-        item1 = item.split('\n')
-        ip.write(item1[0] + '\n')
-    driver.execute_script('''window.open("https://www.google.com","_blank");''')
-    open_tabs += 1
-
-
-global times
-global times1
-global times2
-global times3
-global times4
-
-times = 1
-times1 = 1
-times2 = 1
-times3 = 1
-times4 = 1
+        for item in dns_list:
+            item1 = item.split('\n')
+            ip.write(item1[0] + '\n')
+except:
+    if not br:
+        print('Sorry, there was an error with dnsdumpster.')
 
 
 def whois_org():
-    item_list = []
-    main_div = driver.find_element_by_id('maincontent')
-    for item1 in main_div.find_elements_by_tag_name('a'):
-        item_list.append(item1.text)
-    for item1 in item_list:
-        driver.get('https://whois.arin.net/rest/customer/' + item1)
-        tables = driver.find_elements_by_tag_name('table')
-        try:
-            item = tables[1].find_element_by_tag_name('a').text
-            ip.write(item + '\n')
-        except:
-            pass
-
-
-if whois_use or whois_use == 'True':
-    driver.switch_to.window(driver.window_handles[open_tabs])
-
-    def run_arin(second):
-        driver.get('https://whois.arin.net/ui/advanced.jsp')
-        driver.find_element_by_id('q').send_keys(customer_address)
-        global times
-        global times1
-        global times2
-        global times3
-        global times4
-        times = 1
-        times1 = 1
-        times2 = 1
-        times3 = 1
-        times4 = 1
-        org = False
-        for item in driver.find_elements_by_tag_name('input'):
-            if times == 18 and not second:
-                item.click()
-                driver.find_element_by_id('submitQuery').click()
-                org = True
-            elif times == 21 and second:
-                item.click()
-                driver.find_element_by_id('submitQuery').click()
-                whois_org()
-                break
-            if org:
-                whois_org()
-            times += 1
-
-
-    run_arin(False)
-    run_arin(True)
-    driver.execute_script('''window.open("https://www.google.com","_blank");''')
-    open_tabs += 1
-
-if mx_use == True or mx_use == 'True':
-    driver.switch_to.window(driver.window_handles[open_tabs])
-    driver.get('https://mxtoolbox.com/')
-    driver.find_element_by_id('ctl00_ContentPlaceHolder1_ucToolhandler_txtToolInput').send_keys(customer_address)
-    driver.find_element_by_id('ctl00_ContentPlaceHolder1_ucToolhandler_btnAction').click()
-    time.sleep(5)
-    times = 0
-    for item in driver.find_elements_by_class_name('table-column-IP_Address'):
-        ip.write(item.find_element_by_tag_name('a').text + '\n')
-        times += 1
-    driver.execute_script('''window.open("https://www.google.com","_blank");''')
-    open_tabs += 1
-
-if he_use == True or he_use == 'True':
-    driver.switch_to.window(driver.window_handles[open_tabs])
-    driver.get('https://bgp.he.net/ip')
-    driver.find_element_by_id('search_search').send_keys(customer_address)
-
-    times = 0
-    times1 = 0
-    item_list = []
-    time.sleep(2)
-    for item in driver.find_elements_by_tag_name('input'):
-        if times == 1:
-            item.click()
+    try:
+        item_list = []
+        main_div = driver.find_element_by_id('maincontent')
+        for item1 in main_div.find_elements_by_tag_name('a'):
+            item_list.append(item1.text)
+        for item1 in item_list:
+            driver.get('https://whois.arin.net/rest/customer/' + item1)
             time.sleep(2)
-            for item1 in driver.find_elements_by_class_name('dnsdata'):
-                if times1 == 4:
-                    for item2 in item1.find_elements_by_tag_name('a'):
-                        item_list.append(item2.text)
-                times1 += 1
-            for item1 in item_list:
-                driver.get('https://bgp.he.net/ip/' + str(item1))
-                try:
-                    ip.write('Net Block: ' + driver.find_element_by_class_name('nowrap').find_element_by_tag_name('a').text + '\n')
-                except:
-                    pass
-        times += 1
-    driver.execute_script('''window.open("https://www.google.com","_blank");''')
-    open_tabs += 1
+            tables = driver.find_elements_by_tag_name('table')
+            try:
+                item = tables[1].find_element_by_tag_name('a').text
+                ip.write(item + '\n')
+            except:
+                pass
+    except:
+        if not br:
+            print('Sorry, there was an error with Whois Arin.')
 
-if hunter_io == True or hunter_io == 'True':
-    driver.switch_to.window(driver.window_handles[open_tabs])
-    driver.get('https://hunter.io/search')
-    driver.find_element_by_id('email-field').send_keys(hunter_un)
-    driver.find_element_by_id('password-field').send_keys(hunter_pw)
-    time.sleep(1)
-    driver.find_element_by_class_name('btn-orange').click()
-    time.sleep(1)
-    driver.find_element_by_id('domain-field').send_keys(customer_address)
-    driver.find_element_by_id('search-btn').click()
-    time.sleep(3)
-
-    dp = driver.find_element_by_class_name('domain-pattern')
-    pattern = dp.find_element_by_tag_name('strong').text
-
-    while True:
-        try:
-            driver.find_element_by_class_name('show-more').click()
-        except:
-            break
-        time.sleep(1)
-    driver.execute_script('''window.open("https://www.google.com","_blank");''')
-    open_tabs += 1
-for item in driver.find_elements_by_class_name('email'):
-    emails.write(item.text + '\n')
-emails.close()
-
-times = 1
-times1 = 1
-times2 = int(1)
-times3 = 1
-times4 = 1
-names = len(customer)
-global tt
-tt = 0
-
-while tt < len(customer):
-    if whois_use == True or whois_use == 'True':
-        driver.switch_to.window(driver.window_handles[open_tabs])
-
+try:
+    if whois_use:
+        if open_tabs > 0:
+            driver.execute_script('''window.open("https://whois.arin.net/ui/advanced.jsp");''')
+            driver.switch_to.window(driver.window_handles[open_tabs])
+            open_tabs += 1
+        else:
+            driver.get("https://whois.arin.net/ui/advanced.jsp")
+        time.sleep(2)
 
         def run_arin(second):
             driver.get('https://whois.arin.net/ui/advanced.jsp')
-            driver.find_element_by_id('q').send_keys(customer[tt])
-            global times
-            global times1
-            global times2
-            global times3
-            global times4
+            driver.find_element_by_id('q').send_keys(customer_address)
             times = 1
-            times1 = 1
-            times2 = 1
-            times3 = 1
-            times4 = 1
-            times_pic = 0
-            item_list = []
+            org = False
             for item in driver.find_elements_by_tag_name('input'):
                 if times == 18 and not second:
                     item.click()
                     driver.find_element_by_id('submitQuery').click()
-                    whois_org()
+                    org = True
                 elif times == 21 and second:
                     item.click()
                     driver.find_element_by_id('submitQuery').click()
                     whois_org()
                     break
-                elif times == 21:
-                    run_arin(True)
-                    break
+                if org:
+                    whois_org()
                 times += 1
 
 
         run_arin(False)
-    tt += 1
-    driver.execute_script('''window.open("https://www.google.com","_blank");''')
-    open_tabs += 1
+        run_arin(True)
+except:
+    if not br:
+        print('Sorry, there was an error with Whois Arin.')
 
-tt = 0
-while tt < len(customer):
-    if he_use == True or he_use == 'True':
-        driver.switch_to.window(driver.window_handles[open_tabs])
-        driver.get('https://bgp.he.net/ip')
-        driver.find_element_by_id('search_search').send_keys(customer[tt])
+try:
+    if mx_use:
+        if open_tabs > 0:
+            driver.execute_script('''window.open("https://mxtoolbox.com/");''')
+            driver.switch_to.window(driver.window_handles[open_tabs])
+            open_tabs += 1
+        else:
+            driver.get("https://mxtoolbox.com/")
+        time.sleep(4)
+        driver.find_element_by_id('ctl00_ContentPlaceHolder1_ucToolhandler_txtToolInput').send_keys(customer_address)
+        driver.find_element_by_id('ctl00_ContentPlaceHolder1_ucToolhandler_btnAction').click()
+        time.sleep(5)
+        times = 0
+        for item in driver.find_elements_by_class_name('table-column-IP_Address'):
+            ip.write(item.find_element_by_tag_name('a').text + '\n')
+            times += 1
+except:
+    if not br:
+        print('Sorry, there was an error with mx toolbox.')
 
+try:
+    if he_use:
+        if open_tabs > 0:
+            driver.execute_script('''window.open("https://bgp.he.net/ip");''')
+            driver.switch_to.window(driver.window_handles[open_tabs])
+            open_tabs += 1
+        else:
+            driver.get("https://bgp.he.net/ip")
+        time.sleep(2)
+        driver.find_element_by_id('search_search').send_keys(customer_address)
         times = 0
         times1 = 0
         item_list = []
@@ -351,11 +275,124 @@ while tt < len(customer):
                     times1 += 1
                 for item1 in item_list:
                     driver.get('https://bgp.he.net/ip/' + str(item1))
-                    ip.write('Net Block: ' + driver.find_element_by_class_name('nowrap').find_element_by_tag_name('a').text + '\n')
+                    try:
+                        ip.write('Net Block: ' + driver.find_element_by_class_name('nowrap').find_element_by_tag_name('a').text + '\n')
+                    except:
+                        pass
             times += 1
-    tt += 1
-    driver.execute_script('''window.open("https://www.google.com","_blank");''')
-    open_tabs += 1
+except:
+    if not br:
+        print('Sorry, there was an error with Hurricane Electric.')
+
+try:
+    if hunter_io:
+        if open_tabs > 0:
+            driver.execute_script('''window.open("https://hunter.io/search");''')
+            open_tabs += 1
+            driver.switch_to.window(driver.window_handles[open_tabs])
+        else:
+            driver.get("https://hunter.io/search")
+        time.sleep(2)
+        driver.find_element_by_id('email-field').send_keys(hunter_un)
+        driver.find_element_by_id('password-field').send_keys(hunter_pw)
+        time.sleep(1)
+        driver.find_element_by_class_name('btn-orange').click()
+        time.sleep(1)
+        driver.find_element_by_id('domain-field').send_keys(customer_address)
+        driver.find_element_by_id('search-btn').click()
+        time.sleep(3)
+
+        dp = driver.find_element_by_class_name('domain-pattern')
+        pattern = dp.find_element_by_tag_name('strong').text
+
+        while True:
+            try:
+                driver.find_element_by_class_name('show-more').click()
+                for item in driver.find_elements_by_class_name('email'):
+                    if item not in emails.read().split('\n'):
+                        emails.write(item.text + '\n')
+            except:
+                break
+            time.sleep(1)
+        emails.close()
+except:
+    try:
+        quota = driver.find_element_by_class_name('board-box')
+        print("You don't have enough searches on Hunter.")
+    except:
+        try:
+            login = driver.find_element_by_class_name('alert')
+            print("You entered the wrong credentials.")
+        except:
+            if not br:
+                print('Sorry, there was an error with Hunter.')
+
+times = 1
+global tt
+tt = 0
+try:
+    if whois_use:
+        driver.execute_script('''window.open("https://whois.arin.net/ui/advanced.jsp");''')
+        while tt < len(customer):
+            driver.get("https://whois.arin.net/ui/advanced.jsp")
+            time.sleep(2)
+
+            def run_arin(second):
+                driver.find_element_by_id('q').send_keys(customer[tt])
+                times = 1
+                times_pic = 0
+                item_list = []
+                for item in driver.find_elements_by_tag_name('input'):
+                    if times == 18 and not second:
+                        item.click()
+                        driver.find_element_by_id('submitQuery').click()
+                        whois_org()
+                    elif times == 21 and second:
+                        item.click()
+                        driver.find_element_by_id('submitQuery').click()
+                        whois_org()
+                        break
+                    elif times == 21:
+                        run_arin(True)
+                        break
+                    times += 1
+
+
+            run_arin(False)
+        tt += 1
+except:
+    if not br:
+        print('Sorry, there was an error with Whois Arin.')
+
+try:
+    tt = 0
+    if he_use:
+        driver.execute_script('''window.open("https://bgp.he.net/ip");''')
+        while tt < len(customer):
+            driver.get("https://bgp.he.net/ip")
+            time.sleep(2)
+            driver.find_element_by_id('search_search').send_keys(customer[tt])
+            times = 0
+            times1 = 0
+            item_list = []
+            time.sleep(2)
+            for item in driver.find_elements_by_tag_name('input'):
+                if times == 1:
+                    item.click()
+                    time.sleep(2)
+                    for item1 in driver.find_elements_by_class_name('dnsdata'):
+                        if times1 == 4:
+                            for item2 in item1.find_elements_by_tag_name('a'):
+                                item_list.append(item2.text)
+                        times1 += 1
+                    for item1 in item_list:
+                        driver.get('https://bgp.he.net/ip/' + str(item1))
+                        ip.write('Net Block: ' + driver.find_element_by_class_name('nowrap').find_element_by_tag_name('a').text + '\n')
+                times += 1
+        tt += 1
+except:
+    if not br:
+        print('Sorry, there was an error with Hurricane Electric.')
 
 ip.close()
 
