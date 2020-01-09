@@ -16,6 +16,7 @@ parser.add_argument('-mx', '--mxtoolbox', help='Turns off mxtoolbox.com.', defau
 parser.add_argument('-he', '--hurricaneelectric', help='Turns off bgp.he.net.', default=True, required=False, action='store_false')
 parser.add_argument('-s', '--setting', help='Loads a saved setting file.', required=False)
 parser.add_argument('-nS', '--new-setting', help='Creates a new setting file.', required=False)
+parser.add_argument('-creds', '--credentials', help='Rewrites the recon.config folder.', default=False, required=False, action='store_true')
 args = parser.parse_args()
 
 name1 = args.setting
@@ -29,6 +30,7 @@ mx_use = args.mxtoolbox
 he_use = args.hurricaneelectric
 customer_address = args.domain
 customer = args.name
+creds = args.credentials
 
 dns_list = []
 open_tabs = 0
@@ -58,8 +60,18 @@ gecko_location = ''
 hunter_un = ''
 hunter_pw = ''
 
-cred_write = open('recon.config', 'a')
+def writeCreds():
+    cred_write = open('recon.config', 'w')
+    if hunter_io:
+        hunter_un = input('What is your hunter.io email? ')
+        hunter_pw = input('What is your hunter.io password? ')
+        cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw + '\n')
+    gecko_location = input('What is the location of geckodriver.exe? ')
+    cred_write.write('Geckodriver Location = ' + gecko_location)
+    cred_write.close()
 
+if creds:
+    writeCreds()
 try:
     cred = open('recon.config', 'r').read().split('\n')
     for item in cred:
@@ -72,27 +84,7 @@ try:
             hunter_pw = item[1]
 except:
     print('Your recon.config folder is empty.  Please answer the following questions to fill it.')
-    if hunter_io:
-        hunter_un = input('What is your hunter.io email? ')
-        hunter_pw = input('What is your hunter.io password? ')
-        cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw + '\n')
-    gecko_location = input('What is the location of geckodriver.exe? ')
-    cred_write.write('Geckodriver Location = ' + gecko_location)
-    cred_write.close()
-
-if hunter_un == '':
-    hunter_un = input('What is your hunter.io email? ')
-    cred_write.write('\nHunter email = ' + hunter_un)
-if hunter_pw == '':
-    hunter_pw = input('What is your hunter.io password? ')
-    cred_write.write('\nHunter password = ' + hunter_pw)
-if gecko_location == '':
-    gecko_location = input('What is the location of geckodriver.exe? ')
-    if gecko_location == '':
-        gecko_location = './geckodriver.exe'
-    cred_write.write('\nGeckodriver Location = ' + gecko_location)
-
-cred_write.close()
+    writeCreds()
 
 br = False
 
