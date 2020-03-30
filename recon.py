@@ -27,7 +27,6 @@ whois_use = args.whois
 customer_address = args.domain
 customer = args.name
 showErrors = args.errors
-hunter_args = args.hunterio_args
 
 dns_list = []
 
