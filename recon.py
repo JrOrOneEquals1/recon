@@ -4,6 +4,7 @@ import os, argparse, time, sys
 from selenium import webdriver
 from importlib import import_module
 
+# Parser arguments
 parser = argparse.ArgumentParser(description='This tool uses Python Selenium to parse through certain sites and retrieve IP addresses, and emails.')
 parser.add_argument('-d', '--domain', help="Customer's web domain.", required=True)
 parser.add_argument('-n', '--name', help="All of the customer's names.  Can include search wildcards.", required=True, nargs='*')
@@ -12,11 +13,15 @@ parser.add_argument('-iF', '--ipFile', help="File name of where IPs are saved.",
 parser.add_argument('-hunter', '--hunterio', help='Turns off hunter.io.', default=True, required=False, action='store_false')
 parser.add_argument('-dns', '--dnsdumpster', help='Turns off dnsdumpster.com.', default=True, required=False, action='store_false')
 parser.add_argument('-whois', '--whois', help='Turns off whois.arin.net.', default=True, required=False, action='store_false')
+parser.add_argument('-whatcms', '--whatcms', help='Turns off whatcms.org.', default=True, required=False, action='store_false')
+parser.add_argument('-boxes', '--poppingboxes', help='Turns off whatcms.org.', default=False, required=False, action='store_true')
 parser.add_argument('-s', '--setting', help='Loads a saved setting file.', required=False)
 parser.add_argument('-nS', '--new-setting', help='Creates a new setting file.', required=False)
+parser.add_argument('-cd', '--changeDefault', help='Changes the default value for the specified site.', required=False, nargs='*')
 parser.add_argument('--errors', help='Prints the errors that occur.', default=False, required=False, action='store_true')
 args = parser.parse_args()
 
+# Set argument values to variables
 name1 = args.setting
 name2 = args.new_setting
 dns_use = args.dnsdumpster
@@ -24,29 +29,32 @@ eF = args.emailFile
 iF = args.ipFile
 hunter_io = args.hunterio
 whois_use = args.whois
+whatcms = args.whatcms
+boxes = args.poppingboxes
 customer_address = args.domain
 customer = args.name
 showErrors = args.errors
+cd = args.changeDefault
 
 dns_list = []
 
-try:
+try: # Python2 compatibility
     input = raw_input
 except NameError:
     pass
 
 if iF != None:
-    if iF[-4:-1] == '.txt':
+    if iF.endswith('.txt'): # This prevents files from being named 'example.txt.txt'
         ip = open(iF, 'w')
-    elif iF[-4:-1] != '.txt':
+    else:
         ip = open(iF + '.txt', 'w')
 else:
     ip = open('ips.txt', 'w')
 
 if eF != None:
-    if eF[-4:-1] == '.txt':
+    if eF.endswith('.txt'):# This prevents files from being named 'example.txt.txt'
         emails = open(eF, 'w')
-    elif eF[-4:-1] != '.txt':
+    else:
         emails = open(eF + '.txt', 'w')
 else:
     emails = open('emails.txt', 'w')
@@ -54,11 +62,18 @@ else:
 chromedriver_location = ''
 hunter_un = ''
 hunter_pw = ''
-
+boxes_un = ''
+boxes_pw = ''
+cred = ''
 cred_write = open('recon.config', 'a')
 
 try:
     cred = open('recon.config', 'r').read().split('\n')
+    config = True
+except:
+    config = False
+
+if config: # If config folder exists
     for item in cred:
         item = item.split(' = ')
         if item[0] == ('Chromedriver Location'):
@@ -67,71 +82,98 @@ try:
             hunter_un = item[1]
         elif item[0] == ('Hunter password'):
             hunter_pw = item[1]
-except:
+        elif item[0] == ('boxes username'):
+            boxes_un = item[1]
+        elif item[0] == ('boxes password'):
+            boxes_pw = item[1]
+else: # If config folder does not exist
     print('Your recon.config folder is empty.  Please answer the following questions to fill it.')
     if hunter_io:
         hunter_un = input('What is your hunter.io email? ')
         hunter_pw = input('What is your hunter.io password? ')
-        cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw + '\n')
+        cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw + "\n")
+    if boxes:
+        boxes_un = input('What is your poppingboxes username? ')
+        boxes_pw = input('What is your poppingboxes password? ')
+        cred_write.write('boxes username = ' + boxes_un + '\nboxes password = ' + boxes_pw + '\n')
     chromedriver_location = input('What is the location of chromedriver.exe? ')
     cred_write.write('Chromedriver Location = ' + chromedriver_location)
-    cred_write.close()
 
-if hunter_un == '':
+if hunter_un == '' and hunter_io: # These all ask for information if it is blank and needed
     hunter_un = input('What is your hunter.io email? ')
-    cred_write.write('\nHunter email = ' + hunter_un)
-if hunter_pw == '':
+    if len(cred) > 0:
+        cred_write.write("\n")
+    cred_write.write('Hunter email = ' + hunter_un)
+if hunter_pw == '' and hunter_io:
     hunter_pw = input('What is your hunter.io password? ')
-    cred_write.write('\nHunter password = ' + hunter_pw)
-if chromedriver_location == '':
-    chromedriver_location = input('What is the location of chromedriver.exe? ')
-    if chromedriver_location == '':
-        chromedriver_location = './chromedriver.exe'
-    cred_write.write('\nChromedriver Location = ' + chromedriver_location)
+    if len(cred) > 0:
+        cred_write.write("\n")
+    cred_write.write('Hunter password = ' + hunter_pw)
+if boxes_un == '' and boxes:
+    boxes_un = input('What is your poppingboxes username? ')
+    if len(cred) > 0:
+        cred_write.write("\n")
+    cred_write.write('boxes username = ' + boxes_un)
+if boxes_pw == '' and boxes:
+    boxes_pw = input('What is your poppingboxes password? ')
+    if len(cred) > 0:
+        cred_write.write("\n")
+    cred_write.write('boxes password = ' + boxes_pw)
+if chromedriver_location == '': # If input is nothing, location is ./chromedriver.exe
+    chromedriver_location = './chromedriver.exe'
+    if len(cred) > 0:
+        cred_write.write("\n")
+    cred_write.write('Chromedriver Location = ' + chromedriver_location)
 
 cred_write.close()
 
-if name1 != None:
-    path = '.\\'
-    files = []
-    for r, d, f in os.walk(path):
-        for file in f:
-            if '.txt' in file and 'setting' in file:
-                files.append(os.path.join(r, file))
-    try:
-        y = open(name1 + '.txt', 'r')
-    except:
-        y = open('setting_' + name1 + '.txt', 'r')
-    settings = y.read()
+if name1 != None: # Loads a pre-existing setting file
+    loadFile = open('setting_' + name1 + '.txt', 'r')
+    settings = loadFile.read()
     settings = settings.split('\n')
     hunter_io = settings[0]
     dns_use = settings[1]
     whois_use = settings[2]
-    y.close()
+    whatcms = settings[3]
+    boxes = settings[4]
+    loadFile.close()
 
-if name2 != None:
-    if name2[:3] == 'setting_':
-        y = open(name2 + '.txt', 'w')
-    else:
-        y = open('setting_' + name2 + '.txt', 'w')
-    y.write(str(hunter_io))
-    y.write('\n' + str(dns_use))
-    y.write('\n' + str(whois_use))
-    y.close()
+if name2 != None: # Saves a new setting file
+    try:
+        skip = False
+        existing = open('setting_' + name2 + '.txt', 'r').read() # If the file does not exist, this raises an error that is caught
+        override = input("That file already exists.  Do you want to overwrite it? [y/n] ")
+        if override == 'n':
+            skip = True
+    except:
+        pass
+    if not skip:
+        saveFile = open('setting_' + name2 + '.txt', 'w')
+        saveFile.write(str(hunter_io))
+        saveFile.write('\n' + str(dns_use))
+        saveFile.write('\n' + str(whois_use))
+        saveFile.write('\n' + str(whatcms))
+        saveFile.write('\n' + str(boxes))
+        saveFile.close()
 
-try:
+try: # Opens the chrome session
+    go = True
     driver = webdriver.Chrome(executable_path=chromedriver_location)
     driver.maximize_window()
     driver.get('https://google.com')
-except:
-    print("Couldn't open Chrome")
+except Exception as e:
+    if showErrors:
+        print(e)
+    else:
+        print('Sorry, Chrome did not open.')
 
 try:
-    if dns_use == True:
+    if dns_use and go:
         driver.get('https://dnsdumpster.com')
         driver.find_element_by_id('regularInput').send_keys(customer_address)
         driver.find_element_by_class_name('btn').click()
         ttimes = 0
+        dns_list = []
         for item in driver.find_elements_by_class_name('col-md-3'):
             if ttimes % 2 == 0:
                 text = item.text
@@ -158,36 +200,36 @@ def whois_org():
             item = tables[1].find_element_by_tag_name('a').text
             driver.get("https://whois.arin.net/rest/net/" + item + ".html")
             time.sleep(0.5)
-            ipAddress = driver.find_elements_by_tag_name("td")[3].text
-            ip.write(ipAddress + '\n')
+            ip.write(driver.find_elements_by_tag_name("td")[3].text + '\n')
         except:
             pass
 
+def run_arin(inputValue):
+    newTab()
+    driver.get('https://whois.arin.net/ui/advanced.jsp')
+    driver.find_element_by_id('q').send_keys(inputValue)
+    driver.find_element_by_xpath("//input[@value='ORGANIZATION']").click()
+    driver.find_element_by_id('submitQuery').click()
+    whois_org()
+    driver.get('https://whois.arin.net/ui/advanced.jsp')
+    driver.find_element_by_id('q').send_keys(inputValue)
+    driver.find_element_by_xpath("//input[@value='CUSTOMER']").click()
+    driver.find_element_by_id('submitQuery').click()
+    whois_org()
+
+def newTab():
+    if driver.current_url != "https://www.google.com/":
+        driver.execute_script('window.open("https://google.com");')
+        driver.switch_to.window(driver.window_handles[-1])
+
 try:
-    if whois_use or whois_use == 'True':
-        if driver.current_url != "https://www.google.com/":
-            driver.execute_script('window.open("https://google.com");')
-            driver.switch_to.window(driver.window_handles[-1])
-        def run_arin(second):
-            driver.get('https://whois.arin.net/ui/advanced.jsp')
-            driver.find_element_by_id('q').send_keys(customer_address)
-            times = 1
-            org = False
-            for item in driver.find_elements_by_tag_name('input'):
-                if times == 18 and not second:
-                    item.click()
-                    driver.find_element_by_id('submitQuery').click()
-                    org = True
-                elif times == 21 and second:
-                    item.click()
-                    driver.find_element_by_id('submitQuery').click()
-                    whois_org()
-                    break
-                if org:
-                    whois_org()
-                times += 1
-        run_arin(False)
-        run_arin(True)
+    if whois_use and go:
+        run_arin(customer_address) # Search whois.arin with customer domain
+
+        t = 0
+        for name in customer: # Search whois.arin with customer names
+            run_arin(name)
+            t += 1
 except Exception as e:
     if showErrors:
         print(e)
@@ -195,10 +237,8 @@ except Exception as e:
         print('Sorry, there was an error with whois.arin.')
 
 try:
-    if hunter_io == True or hunter_io == 'True':
-        if driver.current_url != "https://www.google.com/":
-            driver.execute_script('window.open("https://google.com");')
-            driver.switch_to.window(driver.window_handles[-1])
+    if hunter_io and go:
+        newTab()
         driver.get('https://hunter.io/search')
         driver.find_element_by_id('email-field').send_keys(hunter_un)
         driver.find_element_by_id('password-field').send_keys(hunter_pw)
@@ -208,58 +248,59 @@ try:
         driver.find_element_by_id('domain-field').send_keys(customer_address)
         driver.find_element_by_id('search-btn').click()
         time.sleep(3)
-        dp = driver.find_element_by_class_name('domain-pattern')
-        pattern = dp.find_element_by_tag_name('strong').text
+        pattern = driver.find_element_by_class_name('domain-pattern').find_element_by_tag_name('strong').text
         while True:
             try:
                 driver.find_element_by_class_name('show-more').click()
             except:
                 break
             time.sleep(1)
-    for item in driver.find_elements_by_class_name('email'):
-        emails.write(item.text + '\n')
+        emails.write(pattern + "\n")
+        for item in driver.find_elements_by_class_name('email'):
+            emails.write(item.text + '\n')
     emails.close()
 except Exception as e:
     if showErrors:
         print(e)
     else:
         print('Sorry, there was an error with hunter.')
-
-names = len(customer)
-tt = 0
+        
 try:
-    while tt < len(customer):
-        if driver.current_url != "https://www.google.com/":
-            driver.execute_script('window.open("https://google.com");')
-            driver.switch_to.window(driver.window_handles[-1])
-        if whois_use == True or whois_use == 'True':
-            def run_arin(second):
-                driver.get('https://whois.arin.net/ui/advanced.jsp')
-                driver.find_element_by_id('q').send_keys(customer[tt])
-                times = 1
-                times_pic = 0
-                item_list = []
-                for item in driver.find_elements_by_tag_name('input'):
-                    if times == 18 and not second:
-                        item.click()
-                        driver.find_element_by_id('submitQuery').click()
-                        whois_org()
-                    elif times == 21 and second:
-                        item.click()
-                        driver.find_element_by_id('submitQuery').click()
-                        whois_org()
-                        break
-                    elif times == 21:
-                        run_arin(True)
-                        break
-                    times += 1
-            run_arin(False)
-        tt += 1
+    if whatcms and go:
+        newTab()
+        driver.get('https://whatcms.org/')
+        driver.find_element_by_id('what-cms-size').send_keys(customer_address)
+        driver.find_element_by_class_name('btn-success').click()
 except Exception as e:
     if showErrors:
         print(e)
     else:
-        print('Sorry, there was an error with whois.arin.')
+        print('Sorry, there was an error with whatcms.')
+
+try:
+    if boxes and go:
+        newTab()
+        driver.get('https://poppingboxes.org/leaks/')
+        driver.find_element_by_id('id_login').send_keys(boxes_un)
+        driver.find_element_by_id('id_password').send_keys(boxes_pw)
+        driver.find_element_by_class_name("btn").click()
+        time.sleep(1)
+        driver.find_element_by_id('domain').send_keys(customer_address)
+        driver.find_element_by_id('retrieve_leak').click()
+        time.sleep(1)
+        driver.find_element_by_class_name('buttons-csv').click()
+except Exception as e:
+    if showErrors:
+        print(e)
+    else:
+        print('Sorry, there was an error with poppingboxes.')
+
 ip.close()
+
+if cd != None:
+    for var in cd:
+        changeDefault = import_module('changeDefault', package='main')
+        changeDefault.main.main("self", var)
+
 print("Continue to close the browser session.")
 os.system("pause")
