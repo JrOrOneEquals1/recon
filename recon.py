@@ -14,7 +14,6 @@ parser.add_argument('-hunter', '--hunterio', help='Turns off hunter.io.', defaul
 parser.add_argument('-dns', '--dnsdumpster', help='Turns off dnsdumpster.com.', default=True, required=False, action='store_false')
 parser.add_argument('-whois', '--whois', help='Turns off whois.arin.net.', default=True, required=False, action='store_false')
 parser.add_argument('-whatcms', '--whatcms', help='Turns off whatcms.org.', default=True, required=False, action='store_false')
-parser.add_argument('-boxes', '--poppingboxes', help='Turns off whatcms.org.', default=False, required=False, action='store_true')
 parser.add_argument('-s', '--setting', help='Loads a saved setting file.', required=False)
 parser.add_argument('-nS', '--new-setting', help='Creates a new setting file.', required=False)
 parser.add_argument('-cd', '--changeDefault', help='Changes the default value for the specified site.', required=False, nargs='*')
@@ -30,7 +29,6 @@ iF = args.ipFile
 hunter_io = args.hunterio
 whois_use = args.whois
 whatcms = args.whatcms
-boxes = args.poppingboxes
 customer_address = args.domain
 customer = args.name
 showErrors = args.errors
@@ -62,8 +60,6 @@ else:
 chromedriver_location = ''
 hunter_un = ''
 hunter_pw = ''
-boxes_un = ''
-boxes_pw = ''
 cred = ''
 cred_write = open('recon.config', 'a')
 
@@ -82,20 +78,12 @@ if config: # If config folder exists
             hunter_un = item[1]
         elif item[0] == ('Hunter password'):
             hunter_pw = item[1]
-        elif item[0] == ('boxes username'):
-            boxes_un = item[1]
-        elif item[0] == ('boxes password'):
-            boxes_pw = item[1]
 else: # If config folder does not exist
     print('Your recon.config folder is empty.  Please answer the following questions to fill it.')
     if hunter_io:
         hunter_un = input('What is your hunter.io email? ')
         hunter_pw = input('What is your hunter.io password? ')
         cred_write.write('Hunter email = ' + hunter_un + '\nHunter password = ' + hunter_pw + "\n")
-    if boxes:
-        boxes_un = input('What is your poppingboxes username? ')
-        boxes_pw = input('What is your poppingboxes password? ')
-        cred_write.write('boxes username = ' + boxes_un + '\nboxes password = ' + boxes_pw + '\n')
     chromedriver_location = input('What is the location of chromedriver.exe? ')
     cred_write.write('Chromedriver Location = ' + chromedriver_location)
 
@@ -109,16 +97,6 @@ if hunter_pw == '' and hunter_io:
     if len(cred) > 0:
         cred_write.write("\n")
     cred_write.write('Hunter password = ' + hunter_pw)
-if boxes_un == '' and boxes:
-    boxes_un = input('What is your poppingboxes username? ')
-    if len(cred) > 0:
-        cred_write.write("\n")
-    cred_write.write('boxes username = ' + boxes_un)
-if boxes_pw == '' and boxes:
-    boxes_pw = input('What is your poppingboxes password? ')
-    if len(cred) > 0:
-        cred_write.write("\n")
-    cred_write.write('boxes password = ' + boxes_pw)
 if chromedriver_location == '': # If input is nothing, location is ./chromedriver.exe
     chromedriver_location = './chromedriver.exe'
     if len(cred) > 0:
@@ -135,7 +113,6 @@ if name1 != None: # Loads a pre-existing setting file
     dns_use = settings[1]
     whois_use = settings[2]
     whatcms = settings[3]
-    boxes = settings[4]
     loadFile.close()
 
 if name2 != None: # Saves a new setting file
@@ -153,7 +130,6 @@ if name2 != None: # Saves a new setting file
         saveFile.write('\n' + str(dns_use))
         saveFile.write('\n' + str(whois_use))
         saveFile.write('\n' + str(whatcms))
-        saveFile.write('\n' + str(boxes))
         saveFile.close()
 
 try: # Opens the chrome session
@@ -276,24 +252,6 @@ except Exception as e:
         print(e)
     else:
         print('Sorry, there was an error with whatcms.')
-
-try:
-    if boxes and go:
-        newTab()
-        driver.get('https://poppingboxes.org/leaks/')
-        driver.find_element_by_id('id_login').send_keys(boxes_un)
-        driver.find_element_by_id('id_password').send_keys(boxes_pw)
-        driver.find_element_by_class_name("btn").click()
-        time.sleep(1)
-        driver.find_element_by_id('domain').send_keys(customer_address)
-        driver.find_element_by_id('retrieve_leak').click()
-        time.sleep(1)
-        driver.find_element_by_class_name('buttons-csv').click()
-except Exception as e:
-    if showErrors:
-        print(e)
-    else:
-        print('Sorry, there was an error with poppingboxes.')
 
 ip.close()
 
